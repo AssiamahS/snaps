@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+*.zip
+*.csv
+*.pyc
+__pycache__/
+.venv/
+venv/
+.DS_Store
+*.log
+.pg_data/
+nppes_*.zip
