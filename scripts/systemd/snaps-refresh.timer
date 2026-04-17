@@ -1,0 +1,12 @@
+[Unit]
+Description=Run NPPES refresh once a month
+
+[Timer]
+# Second Wednesday of each month at 04:30 UTC — NPPES drops the second Friday,
+# so by the following Wednesday the monthly file is always there.
+OnCalendar=Wed *-*-08..14 04:30:00 UTC
+Persistent=true
+RandomizedDelaySec=30m
+
+[Install]
+WantedBy=timers.target

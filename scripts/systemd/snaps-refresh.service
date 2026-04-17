@@ -1,0 +1,13 @@
+[Unit]
+Description=Monthly NPPES refresh — fetch + load + analyze
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/snaps
+EnvironmentFile=/etc/snaps/env
+ExecStart=/bin/bash /opt/snaps/scripts/refresh.sh
+StandardOutput=journal
+StandardError=journal

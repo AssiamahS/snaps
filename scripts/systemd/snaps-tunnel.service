@@ -1,0 +1,16 @@
+[Unit]
+Description=snaps Cloudflare quick tunnel (public HTTPS for the API)
+After=network-online.target snaps-api.service
+Wants=network-online.target snaps-api.service
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/cloudflared tunnel --no-autoupdate --url http://localhost:8000
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
