@@ -6,15 +6,19 @@ Stream-load NPPES monthly CSV into 3 filtered Postgres tables:
   providers_dentists    - taxonomy prefix 12 (Dental Providers)
   providers_pharmacists - taxonomy prefix 18 (Pharmacy Service Providers)
 
-Individuals only (Entity Type Code = 1). Primary taxonomy wins; falls back to
-slot 1 if no primary flag is set. Facilities (entity type 2) are ignored here —
-they'll get their own tables later.
+Two-phase to stay sane on a 2 GB RAM box:
+  Phase 1: stream the ZIP and write 3 filtered temp CSVs to /tmp.
+           No DB connection yet, so no postgres backend memory in play.
+  Phase 2: close temp files, then run 3 sequential COPY FROM commands.
+           Only one postgres backend is busy at a time.
 
-Connection and file paths come from env. No creds are embedded.
+Individuals only (Entity Type Code = 1). Primary taxonomy wins, falls back
+to slot 1. Facilities get their own tables in a follow-up.
 """
-import sys, csv, io, os, zipfile, subprocess, time
+import csv, io, os, zipfile, subprocess, time
 
 ZIP_PATH = os.environ.get("NPPES_ZIP_PATH", "/tmp/nppes.zip")
+TMP_DIR  = os.environ.get("NPPES_TMP_DIR", "/tmp")
 
 def pg_dsn():
     return "postgresql://{u}:{p}@{h}:{port}/{db}".format(
@@ -37,25 +41,17 @@ COLS = [
     "phone","fax","enumeration_date","last_updated","deactivation_date",
 ]
 
-def open_copy(table, dsn):
-    cmd = ["psql", dsn, "-c",
-           f"COPY {table} ({','.join(COLS)}) FROM STDIN WITH (FORMAT csv, NULL '')"]
-    return subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                            stdout=subprocess.DEVNULL, stderr=sys.stderr)
-
 def norm_date(s):
-    # NPPES dates are MM/DD/YYYY; Postgres accepts YYYY-MM-DD cleanly.
     if not s or len(s) != 10:
         return ""
     m, d, y = s.split("/")
     return f"{y}-{m}-{d}"
 
-def main():
-    dsn = pg_dsn()
-    procs = {t: open_copy(t, dsn) for t in TAXONOMY_MAP.values()}
-    writers = {t: csv.writer(io.TextIOWrapper(procs[t].stdin, encoding="utf-8", write_through=True))
-               for t in procs}
-    counts = {t: 0 for t in procs}
+def phase1_filter():
+    tmp_paths = {t: os.path.join(TMP_DIR, f"nppes_{t}.csv") for t in TAXONOMY_MAP.values()}
+    files    = {t: open(p, "w", encoding="utf-8", newline="") for t, p in tmp_paths.items()}
+    writers  = {t: csv.writer(f) for t, f in files.items()}
+    counts   = {t: 0 for t in files}
     skipped_org = skipped_other = 0
     total = 0
     start = time.time()
@@ -64,7 +60,7 @@ def main():
         main_csv = next(n for n in z.namelist()
                         if n.startswith("npidata_pfile_") and n.endswith(".csv")
                         and "FileHeader" not in n and "fileheader" not in n)
-        print(f"[loader] main CSV: {main_csv}", flush=True)
+        print(f"[phase1] main CSV: {main_csv}", flush=True)
         with z.open(main_csv) as raw:
             reader = csv.reader(io.TextIOWrapper(raw, encoding="utf-8", errors="replace"))
             header = next(reader)
@@ -102,7 +98,7 @@ def main():
                 total += 1
                 if total % 500000 == 0:
                     rate = total / (time.time() - start)
-                    print(f"[loader] {total:,} rows  ({rate:.0f}/s)  matched={counts}", flush=True)
+                    print(f"[phase1] {total:,} rows  ({rate:.0f}/s)  matched={counts}", flush=True)
 
                 if row[I["ent"]] != "1":
                     skipped_org += 1
@@ -134,15 +130,41 @@ def main():
                 ])
                 counts[table] += 1
 
-    for t, p in procs.items():
-        p.stdin.close()
-        rc = p.wait()
-        print(f"[loader] COPY {t} rc={rc} rows={counts[t]:,}", flush=True)
+    for f in files.values():
+        f.close()
 
     elapsed = time.time() - start
-    print(f"[loader] DONE total={total:,} orgs_skipped={skipped_org:,} "
+    print(f"[phase1] DONE total={total:,} orgs_skipped={skipped_org:,} "
           f"other_skipped={skipped_other:,} elapsed={elapsed:.0f}s", flush=True)
-    print(f"[loader] loaded: {counts}", flush=True)
+    print(f"[phase1] wrote: {counts}", flush=True)
+    return tmp_paths, counts
+
+def phase2_copy(tmp_paths, dsn):
+    for table, path in tmp_paths.items():
+        start = time.time()
+        print(f"[phase2] TRUNCATE + COPY {table} from {path}", flush=True)
+        subprocess.check_call(["psql", dsn, "-c", f"TRUNCATE {table};"])
+        with open(path, "rb") as f:
+            rc = subprocess.run(
+                ["psql", dsn, "-c",
+                 f"COPY {table} ({','.join(COLS)}) FROM STDIN WITH (FORMAT csv, NULL '')"],
+                stdin=f, check=True
+            )
+        elapsed = time.time() - start
+        print(f"[phase2] {table} loaded in {elapsed:.0f}s", flush=True)
+
+def cleanup(tmp_paths):
+    for p in tmp_paths.values():
+        try:
+            os.remove(p)
+        except OSError:
+            pass
+
+def main():
+    tmp_paths, counts = phase1_filter()
+    phase2_copy(tmp_paths, pg_dsn())
+    cleanup(tmp_paths)
+    print("[loader] ALL DONE", flush=True)
 
 if __name__ == "__main__":
     main()
