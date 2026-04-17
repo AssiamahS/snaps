@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>snaps — clean NPI lookups for developers</title>
+  <meta name="description" content="Fast, HIPAA-adjacent-friendly NPI registry lookups. Doctors, dentists, pharmacists. Built on the CMS NPPES monthly dump." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100">
+
+  <header class="border-b border-neutral-800">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="font-semibold tracking-tight text-lg">snaps</a>
+      <nav class="text-sm text-neutral-400 space-x-6">
+        <a href="#features" class="hover:text-white">features</a>
+        <a href="#pricing"  class="hover:text-white">pricing</a>
+        <a href="#docs"     class="hover:text-white">docs</a>
+        <a href="#signup"   class="text-white hover:text-emerald-400">get api key</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="max-w-5xl mx-auto px-6 pt-24 pb-16">
+    <h1 class="text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+      clean NPI lookups <br/>
+      <span class="text-emerald-400">for people who ship.</span>
+    </h1>
+    <p class="mt-6 text-lg text-neutral-400 max-w-2xl">
+      1.85M US doctors, dentists, and pharmacists. Indexed by state, city, name,
+      and specialty. Fresh against the CMS NPPES monthly dump. Five-millisecond
+      queries, JSON you can paste into a schema.
+    </p>
+    <div class="mt-8 flex gap-3">
+      <a href="#signup" class="rounded-lg bg-emerald-500 text-black px-5 py-3 font-medium hover:bg-emerald-400">start free</a>
+      <a href="#docs" class="rounded-lg border border-neutral-700 px-5 py-3 font-medium hover:border-neutral-500">read the docs</a>
+    </div>
+
+    <pre class="mt-12 rounded-xl bg-neutral-900 border border-neutral-800 p-5 overflow-x-auto text-sm leading-6"><code>$ curl "https://api.snaps.dev/doctors?state=NJ&city=Newark&limit=3"
+{
+  "count": 3,
+  "results": [
+    { "npi": 1234567890, "last_name": "Patel",  "first_name": "A.",  "taxonomy_code": "207R00000X", "city": "NEWARK", "state": "NJ" },
+    { "npi": 1987654321, "last_name": "Nguyen", "first_name": "M.", "taxonomy_code": "207Q00000X", "city": "NEWARK", "state": "NJ" },
+    { "npi": 1122334455, "last_name": "Okafor", "first_name": "T.", "taxonomy_code": "208000000X", "city": "NEWARK", "state": "NJ" }
+  ]
+}</code></pre>
+  </section>
+
+  <section id="features" class="max-w-5xl mx-auto px-6 py-16 border-t border-neutral-800">
+    <h2 class="text-2xl font-semibold tracking-tight">what you get</h2>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <div class="rounded-xl bg-neutral-900 border border-neutral-800 p-6">
+        <div class="text-emerald-400 text-sm uppercase tracking-wider">data</div>
+        <h3 class="mt-2 font-semibold">1.85M individuals</h3>
+        <p class="mt-2 text-sm text-neutral-400">doctors, dentists, pharmacists. refreshed monthly against the official cms nppes dump.</p>
+      </div>
+      <div class="rounded-xl bg-neutral-900 border border-neutral-800 p-6">
+        <div class="text-emerald-400 text-sm uppercase tracking-wider">speed</div>
+        <h3 class="mt-2 font-semibold">~5ms indexed lookups</h3>
+        <p class="mt-2 text-sm text-neutral-400">state + city + last name + taxonomy. no pagination gymnastics to get what you want.</p>
+      </div>
+      <div class="rounded-xl bg-neutral-900 border border-neutral-800 p-6">
+        <div class="text-emerald-400 text-sm uppercase tracking-wider">api</div>
+        <h3 class="mt-2 font-semibold">json that fits</h3>
+        <p class="mt-2 text-sm text-neutral-400">flat rows, iso dates, one column per field. no stringified csv, no exotic encodings.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="max-w-5xl mx-auto px-6 py-16 border-t border-neutral-800">
+    <h2 class="text-2xl font-semibold tracking-tight">pricing</h2>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <div class="rounded-xl bg-neutral-900 border border-neutral-800 p-6">
+        <div class="text-neutral-400 text-sm">free</div>
+        <div class="mt-1 text-3xl font-semibold">$0</div>
+        <ul class="mt-4 text-sm text-neutral-300 space-y-2">
+          <li>100 lookups / day</li>
+          <li>email support, best effort</li>
+          <li>rate limited by IP</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-neutral-900 border border-emerald-500 p-6">
+        <div class="text-emerald-400 text-sm">starter</div>
+        <div class="mt-1 text-3xl font-semibold">$19<span class="text-base text-neutral-500">/mo</span></div>
+        <ul class="mt-4 text-sm text-neutral-300 space-y-2">
+          <li>10,000 lookups / mo</li>
+          <li>csv export</li>
+          <li>api key + email support</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-neutral-900 border border-neutral-800 p-6">
+        <div class="text-neutral-400 text-sm">pro</div>
+        <div class="mt-1 text-3xl font-semibold">$49<span class="text-base text-neutral-500">/mo</span></div>
+        <ul class="mt-4 text-sm text-neutral-300 space-y-2">
+          <li>unlimited lookups</li>
+          <li>change webhooks</li>
+          <li>priority support</li>
+        </ul>
+      </div>
+    </div>
+    <p class="mt-6 text-sm text-neutral-500">enterprise + volume pricing: hello@snaps.dev</p>
+  </section>
+
+  <section id="signup" class="max-w-5xl mx-auto px-6 py-16 border-t border-neutral-800">
+    <h2 class="text-2xl font-semibold tracking-tight">get an api key</h2>
+    <p class="mt-3 text-neutral-400">signup is opening soon. drop your email and we'll send the key when the gate opens.</p>
+    <form class="mt-6 flex gap-3 max-w-md" action="https://formspree.io/f/REPLACE_ME" method="POST">
+      <input name="email" type="email" required placeholder="you@company.com"
+        class="flex-1 rounded-lg bg-neutral-900 border border-neutral-800 px-4 py-3 focus:outline-none focus:border-emerald-500" />
+      <button class="rounded-lg bg-emerald-500 text-black px-5 py-3 font-medium hover:bg-emerald-400">notify me</button>
+    </form>
+  </section>
+
+  <footer class="border-t border-neutral-800 mt-12">
+    <div class="max-w-5xl mx-auto px-6 py-8 text-sm text-neutral-500 flex justify-between">
+      <span>© snaps 2026 · data: CMS NPPES (public domain)</span>
+      <a href="https://github.com/AssiamahS/snaps" class="hover:text-white">github</a>
+    </div>
+  </footer>
+
+</body>
+</html>

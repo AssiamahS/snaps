@@ -1,7 +1,19 @@
 # snaps
 
-NPI provider directory for MedChat. Ingests the monthly CMS NPPES dump and
-serves filtered Postgres tables for individual practitioners by type.
+NPI provider directory + clean read API. Ingests the monthly CMS NPPES dump
+and serves filtered Postgres tables for individual practitioners by type.
+
+## Layout
+
+```
+api/         FastAPI read layer (doctors, dentists, pharmacists)
+loader/      streaming NPPES loader
+schema/      SQL — init + indexes
+scripts/     VPS bring-up + monthly fetch
+web/         landing page (static, Cloudflare Pages)
+docs/        architecture + plans
+.devcontainer/ Codespaces config so the Mac stays cool
+```
 
 - `providers_doctors`     — taxonomy 20xx (Allopathic & Osteopathic)
 - `providers_dentists`    — taxonomy 12xx (Dental)
