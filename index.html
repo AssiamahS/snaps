@@ -337,7 +337,7 @@
       const val = demoInput.value.trim();
       if (!val) return;
 
-      const url = `https://api.snaps.dev/doctors?last_name=${encodeURIComponent(val)}&limit=10`;
+      const url = `https://api.snaps.dev/api/v1/providers/doctors?last_name=${encodeURIComponent(val)}&limit=10`;
       
       demoLoading.classList.remove('hidden');
       demoResponseBody.style.opacity = '0.3';
@@ -354,21 +354,13 @@
         
         const data = await res.json();
         
-        // Ensure we show cursor-based pagination in the UI example
-        if (data.results && data.results.length > 0) {
-          data.pagination = {
-            limit: 10,
-            next_cursor: btoa(JSON.stringify({ npi: data.results[data.results.length-1].npi }))
-          };
-        }
-
         demoResponseBody.innerHTML = `<code>${JSON.stringify(data, null, 2)}</code>`;
         demoLatency.innerText = `${latency}ms`;
       } catch (err) {
         demoResponseBody.innerHTML = `<code class="text-red-400">{
   "error": "API Offline or CORS blocked",
   "message": "${err.message}",
-  "hint": "Ensure api.snaps.dev is running and accessible."
+  "hint": "Check api.snaps.dev status or reach out to hello@snaps.dev"
 }</code>`;
         demoLatency.innerText = "Error";
       } finally {

@@ -46,7 +46,11 @@ app = FastAPI(title="snaps NPI API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For dev/prototype, allow all. Refine for production.
+    allow_origins=[
+        "https://assiamahs.github.io",
+        "http://localhost:3000", # For local dev
+        "http://127.0.0.1:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,6 +65,7 @@ async def healthz():
     return {"status": "ok" if row and row["ok"] == 1 else "degraded"}
 
 
+@app.get("/api/v1/providers/{kind}")
 @app.get("/{kind}")
 async def search(
     kind: str,
@@ -69,6 +74,7 @@ async def search(
     last_name: Optional[str] = Query(None, max_length=100),
     taxonomy_prefix: Optional[str] = Query(None, min_length=2, max_length=10),
     limit: int = Query(50, ge=1, le=500),
+    cursor: Optional[str] = Query(None),
 ):
     table = TABLES.get(kind)
     if not table:
@@ -83,13 +89,26 @@ async def search(
         where.append("last_name ILIKE %s"); params.append(f"{last_name}%")
     if taxonomy_prefix:
         where.append("taxonomy_code LIKE %s"); params.append(f"{taxonomy_prefix}%")
+    
+    # Simple cursor implementation (assuming NPI is unique and ordered)
+    if cursor:
+        try:
+            # Simple cursor logic: if cursor exists, it's the last NPI seen
+            # In a real app, this would be more robust (e.g. b64 encoded JSON)
+            import base64
+            import json
+            cursor_data = json.loads(base64.b64decode(cursor).decode())
+            where.append("npi > %s")
+            params.append(cursor_data["npi"])
+        except:
+            raise HTTPException(400, "Invalid cursor format")
 
     sql = f"""
         SELECT npi, first_name, last_name, middle_name, credential, taxonomy_code,
                addr_line1, addr_line2, city, state, zip, phone, enumeration_date
         FROM {table}
         {"WHERE " + " AND ".join(where) if where else ""}
-        ORDER BY last_name, first_name
+        ORDER BY npi ASC
         LIMIT %s
     """
     params.append(limit)
@@ -97,9 +116,25 @@ async def search(
     async with pool.cursor() as cur:
         await cur.execute(sql, params)
         rows = await cur.fetchall()
-    return {"count": len(rows), "results": rows}
+    
+    next_cursor = None
+    if len(rows) == limit:
+        import base64
+        import json
+        last_npi = rows[-1]["npi"]
+        next_cursor = base64.b64encode(json.dumps({"npi": last_npi}).encode()).decode()
+
+    return {
+        "count": len(rows), 
+        "pagination": {
+            "limit": limit,
+            "next_cursor": next_cursor
+        },
+        "results": rows
+    }
 
 
+@app.get("/api/v1/providers/{kind}/{npi}")
 @app.get("/{kind}/{npi}")
 async def get_one(kind: str, npi: int):
     table = TABLES.get(kind)
