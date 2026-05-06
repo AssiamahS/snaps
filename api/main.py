@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 import psycopg
 from psycopg.rows import dict_row
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 DSN = "postgresql://{u}:{p}@{h}:{port}/{db}".format(
     u=os.environ.get("PGUSER", "medchat_app"),
@@ -42,6 +43,14 @@ async def lifespan(app: FastAPI):
         await pool.close()
 
 app = FastAPI(title="snaps NPI API", version="0.1.0", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For dev/prototype, allow all. Refine for production.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/healthz")

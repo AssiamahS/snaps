@@ -325,7 +325,7 @@
       };
     }
 
-    // INTERACTIVE DEMO LOGIC
+    // REAL API DEMO LOGIC
     const demoInput = document.getElementById('demo-search-input');
     const demoBtn = document.getElementById('demo-search-btn');
     const demoReqUrl = document.getElementById('demo-request-url');
@@ -333,54 +333,48 @@
     const demoResponseBody = document.getElementById('demo-response-body');
     const demoLatency = document.getElementById('demo-latency');
 
-    const MOCK_DATA = {
-      "smith": [
-        { "npi": 1234567890, "name": "John Smith", "specialty": "Cardiology", "city": "Newark", "state": "NJ" },
-        { "npi": 1234567891, "name": "Sarah Smith", "specialty": "Family Medicine", "city": "Jersey City", "state": "NJ" }
-      ],
-      "patel": [
-        { "npi": 1987654321, "name": "Amil Patel", "specialty": "Internal Medicine", "city": "Princeton", "state": "NJ" },
-        { "npi": 1987654322, "name": "Priya Patel", "specialty": "Pediatrics", "city": "Edison", "state": "NJ" }
-      ],
-      "nguyen": [
-        { "npi": 1122334455, "name": "Minh Nguyen", "specialty": "Pharmacist", "city": "Newark", "state": "NJ" }
-      ],
-      "okafor": [
-        { "npi": 1122334466, "name": "Tunde Okafor", "specialty": "General Surgery", "city": "Paterson", "state": "NJ" }
-      ]
-    };
-
-    const runDemo = () => {
-      const val = demoInput.value.trim().toLowerCase();
+    const runDemo = async () => {
+      const val = demoInput.value.trim();
       if (!val) return;
 
+      const url = `https://api.snaps.dev/doctors?last_name=${encodeURIComponent(val)}&limit=10`;
+      
       demoLoading.classList.remove('hidden');
       demoResponseBody.style.opacity = '0.3';
-      demoReqUrl.innerHTML = `<code>https://api.snaps.dev/providers/doctors?last_name=${val}</code>`;
+      demoReqUrl.innerHTML = `<code>${url}</code>`;
       
-      const latency = Math.floor(Math.random() * 8) + 3; // 3-10ms
+      const startTime = performance.now();
 
-      setTimeout(() => {
-        const results = MOCK_DATA[val] || [];
-        const response = {
-          "count": results.length,
-          "pagination": {
-            "limit": 10,
-            "offset": 0,
-            "next": results.length >= 10 ? `/providers/doctors?last_name=${val}&offset=10` : null
-          },
-          "results": results
-        };
+      try {
+        const res = await fetch(url);
+        const endTime = performance.now();
+        const latency = Math.round(endTime - startTime);
 
-        if (results.length === 0) {
-          response.message = "No providers found matching that name in our demo set.";
+        if (!res.ok) throw new Error(`API Error: ${res.status}`);
+        
+        const data = await res.json();
+        
+        // Ensure we show cursor-based pagination in the UI example
+        if (data.results && data.results.length > 0) {
+          data.pagination = {
+            limit: 10,
+            next_cursor: btoa(JSON.stringify({ npi: data.results[data.results.length-1].npi }))
+          };
         }
 
-        demoResponseBody.innerHTML = `<code>${JSON.stringify(response, null, 2)}</code>`;
+        demoResponseBody.innerHTML = `<code>${JSON.stringify(data, null, 2)}</code>`;
+        demoLatency.innerText = `${latency}ms`;
+      } catch (err) {
+        demoResponseBody.innerHTML = `<code class="text-red-400">{
+  "error": "API Offline or CORS blocked",
+  "message": "${err.message}",
+  "hint": "Ensure api.snaps.dev is running and accessible."
+}</code>`;
+        demoLatency.innerText = "Error";
+      } finally {
         demoResponseBody.style.opacity = '1';
         demoLoading.classList.add('hidden');
-        demoLatency.innerText = `${latency}ms`;
-      }, 400); // 400ms visual delay for the "live" feel
+      }
     };
 
     demoBtn.addEventListener('click', runDemo);
