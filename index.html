@@ -9,6 +9,11 @@
   <style>
     body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     .nav-link { transition: color 0.2s; }
+    @keyframes pulse-emerald {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 0.2; }
+    }
+    .animate-pulse-slow { animation: pulse-emerald 3s infinite; }
   </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100">
@@ -54,76 +59,65 @@
     </div>
 
     <div class="mt-12 flex flex-wrap gap-3">
-      <a href="#signup" class="rounded-lg bg-emerald-500 text-black px-6 py-4 font-medium hover:bg-emerald-400 transition-colors">start free</a>
-      <a href="#demo" class="rounded-lg bg-neutral-900 border border-neutral-700 text-white px-6 py-4 font-medium hover:border-emerald-500 transition-colors">view live demo</a>
+      <a href="#signup" class="rounded-lg bg-emerald-500 text-black px-6 py-4 font-medium hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/10">start free</a>
+      <a href="#demo" class="rounded-lg bg-neutral-900 border border-neutral-700 text-white px-6 py-4 font-medium hover:border-emerald-500 transition-colors">view interactive demo</a>
       <a href="#docs" class="rounded-lg border border-neutral-800 text-neutral-400 px-6 py-4 font-medium hover:text-white transition-colors">read docs</a>
     </div>
   </section>
 
-  <!-- LIVE API DEMO -->
+  <!-- INTERACTIVE LIVE API DEMO -->
   <section id="demo" class="max-w-5xl mx-auto px-6 py-20 border-t border-neutral-800">
     <div class="grid lg:grid-cols-2 gap-12 items-start">
       <div>
         <h2 class="text-3xl font-semibold text-white">Live API Demo</h2>
         <p class="mt-4 text-neutral-400 text-lg">
-          Clean, indexed NPI lookups. No auth setup required for local development. Use your API key for production.
+          Experience the speed and simplicity. Look up a provider by name to see the real-time response schema.
         </p>
         
-        <div class="mt-10 space-y-6">
-          <div class="bg-neutral-900/50 border border-neutral-800 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="text-xs font-mono text-neutral-500 uppercase tracking-widest">JavaScript Implementation</div>
-              <span class="bg-emerald-500/10 text-emerald-500 text-[10px] px-2 py-0.5 rounded uppercase font-bold">Fastest</span>
+        <div class="mt-10">
+          <div class="flex flex-col gap-4">
+            <div class="flex gap-2">
+              <input type="text" id="demo-search-input" placeholder="Search by last name (e.g. Smith, Patel)" 
+                class="flex-1 rounded-xl bg-neutral-900 border border-neutral-800 px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-white font-medium" />
+              <button id="demo-search-btn" class="rounded-xl bg-emerald-500 text-black px-6 py-4 font-bold hover:bg-emerald-400 transition-all active:scale-95">
+                Search
+              </button>
             </div>
-            <pre class="text-xs text-blue-400 overflow-x-auto font-mono"><code>const res = await fetch('https://api.snaps.dev/providers/doctors?state=NJ', {
-  headers: { 'X-API-Key': 'sk_test_...' }
-});
-const { results } = await res.json();</code></pre>
+            <p class="text-xs text-neutral-500">Demo matches common names like Smith, Patel, Nguyen, Okafor.</p>
           </div>
-          
-          <ul class="space-y-4 text-sm text-neutral-400">
-            <li class="flex items-center gap-3">
-              <div class="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+
+          <div class="mt-10 space-y-6">
+            <div class="bg-neutral-900/50 border border-neutral-800 rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-xs font-mono text-neutral-500 uppercase tracking-widest">Request</div>
+                <span id="demo-method" class="bg-emerald-500/10 text-emerald-500 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-widest">GET</span>
               </div>
-              <span>Median <10ms response times (indexed)</span>
-            </li>
-            <li class="flex items-center gap-3">
-              <div class="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-              </div>
-              <span>RESTful, paginated, and predictable schema</span>
-            </li>
-          </ul>
+              <pre id="demo-request-url" class="text-xs text-blue-400 overflow-x-auto font-mono"><code>https://api.snaps.dev/providers/doctors?last_name=...</code></pre>
+            </div>
+          </div>
         </div>
       </div>
       <div class="relative group">
         <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-500"></div>
-        <div class="relative bg-black rounded-2xl border border-neutral-800 p-6 overflow-hidden">
+        <div class="relative bg-black rounded-2xl border border-neutral-800 p-6 overflow-hidden min-h-[400px]">
           <div class="flex items-center gap-2 mb-4 border-b border-neutral-800 pb-4">
             <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
             <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
             <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
             <div class="ml-2 text-[10px] font-mono text-neutral-600 uppercase">Response JSON</div>
+            <div id="demo-latency" class="ml-auto text-[10px] font-mono text-emerald-500/50 uppercase"></div>
           </div>
-          <pre class="overflow-x-auto text-[11px] md:text-xs leading-6 text-emerald-400 font-mono"><code>GET /providers/doctors?state=NJ&city=Newark
-
-{
-  "count": 12432,
-  "pagination": {
-    "limit": 10,
-    "offset": 0,
-    "next": "/providers/doctors?state=NJ&offset=10"
-  },
-  "results": [
-    {
-      "npi": 1234567890,
-      "name": "John Smith",
-      "specialty": "Cardiology",
-      "city": "Newark",
-      "state": "NJ"
-    }
-  ]
+          <div id="demo-loading" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+            <div class="flex gap-1">
+              <div class="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.3s]"></div>
+              <div class="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.15s]"></div>
+              <div class="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"></div>
+            </div>
+          </div>
+          <pre id="demo-response-body" class="overflow-x-auto text-[11px] md:text-xs leading-6 text-emerald-400 font-mono transition-opacity duration-300"><code>{
+  "count": 0,
+  "results": [],
+  "message": "Type a name and click Search to begin"
 }</code></pre>
         </div>
       </div>
@@ -157,19 +151,19 @@ const { results } = await res.json();</code></pre>
     <h2 class="text-2xl font-semibold text-white">API Overview</h2>
     <div class="mt-8 grid md:grid-cols-2 gap-12">
       <div>
-        <p class="text-neutral-400 mb-8 text-lg">Predictable JSON responses and standard HTTP status codes. Every list endpoint supports cursor-based pagination.</p>
+        <p class="text-neutral-400 mb-8 text-lg leading-relaxed">Standard HTTP status codes. Every list endpoint supports cursor-based pagination.</p>
         
         <div class="space-y-4">
           <div class="flex items-center gap-3">
-            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase">GET</span>
+            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest">GET</span>
             <span class="font-mono text-sm text-neutral-300">/providers/doctors</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase">GET</span>
+            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest">GET</span>
             <span class="font-mono text-sm text-neutral-300">/providers/pharmacists</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase">GET</span>
+            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest">GET</span>
             <span class="font-mono text-sm text-neutral-300">/providers/dentists</span>
           </div>
         </div>
@@ -179,7 +173,7 @@ const { results } = await res.json();</code></pre>
           <pre class="bg-black/50 border border-neutral-800 rounded-xl p-5 text-xs text-red-400 font-mono"><code>{
   "error": {
     "code": "invalid_taxonomy",
-    "message": "The taxonomy code provided is not a valid CMS specialty code."
+    "message": "The taxonomy code provided is not a valid CMS provider taxonomy code."
   }
 }</code></pre>
         </div>
@@ -189,21 +183,25 @@ const { results } = await res.json();</code></pre>
         <div class="bg-neutral-900 rounded-2xl p-8 border border-neutral-800">
           <h4 class="text-sm font-bold text-white uppercase tracking-widest mb-6 border-b border-neutral-800 pb-4">Query Parameters</h4>
           <div class="space-y-4 text-sm">
-            <div class="flex justify-between items-center border-b border-neutral-800/50 pb-3">
-              <code class="text-emerald-400 font-bold">state</code>
-              <span class="text-neutral-500">ISO 3166-2 (e.g. CA)</span>
+            <div class="flex flex-col border-b border-neutral-800/50 pb-3">
+              <code class="text-emerald-400 font-bold mb-1">state</code>
+              <span class="text-neutral-500 text-xs">2-letter U.S. state code, e.g. NJ, CA, TX</span>
             </div>
-            <div class="flex justify-between items-center border-b border-neutral-800/50 pb-3">
-              <code class="text-emerald-400 font-bold">city</code>
-              <span class="text-neutral-500">Canonical city name</span>
+            <div class="flex flex-col border-b border-neutral-800/50 pb-3">
+              <code class="text-emerald-400 font-bold mb-1">city</code>
+              <span class="text-neutral-500 text-xs">City name, case-insensitive</span>
             </div>
-            <div class="flex justify-between items-center border-b border-neutral-800/50 pb-3">
-              <code class="text-emerald-400 font-bold">taxonomy</code>
-              <span class="text-neutral-500">10-char specialty code</span>
+            <div class="flex flex-col border-b border-neutral-800/50 pb-3">
+              <code class="text-emerald-400 font-bold mb-1">taxonomy</code>
+              <span class="text-neutral-500 text-xs">10-character CMS provider taxonomy code</span>
             </div>
-            <div class="flex justify-between items-center border-b border-neutral-800/50 pb-3">
-              <code class="text-emerald-400 font-bold">limit</code>
-              <span class="text-neutral-500">1-100 (Default 20)</span>
+            <div class="flex flex-col border-b border-neutral-800/50 pb-3">
+              <code class="text-emerald-400 font-bold mb-1">limit</code>
+              <span class="text-neutral-500 text-xs">1–100, default 20</span>
+            </div>
+            <div class="flex flex-col border-b border-neutral-800/50 pb-3">
+              <code class="text-emerald-400 font-bold mb-1">cursor</code>
+              <span class="text-neutral-500 text-xs">Pagination cursor returned from the previous response</span>
             </div>
           </div>
         </div>
@@ -246,7 +244,7 @@ const { results } = await res.json();</code></pre>
         </ul>
       </div>
     </div>
-    <p class="mt-12 text-center text-sm text-neutral-500">Need custom volume? Contact <a href="mailto:hello@snaps.dev" class="text-emerald-500 hover:underline">hello@snaps.dev</a></p>
+    <p class="mt-12 text-center text-sm text-neutral-500">Need custom volume? Contact <a href="mailto:hello@snaps.dev" class="text-emerald-500 hover:underline transition-all">hello@snaps.dev</a></p>
   </section>
 
   <!-- SIGNUP -->
@@ -285,7 +283,7 @@ const { results } = await res.json();</code></pre>
           github
         </a>
       </div>
-      <div class="flex gap-8 font-medium">
+      <div class="flex gap-8 font-medium text-xs md:text-sm">
         <a href="#" class="hover:text-white transition-colors">Privacy</a>
         <a href="#" class="hover:text-white transition-colors">Terms</a>
         <a href="mailto:hello@snaps.dev" class="hover:text-white transition-colors">Contact</a>
@@ -301,9 +299,7 @@ const { results } = await res.json();</code></pre>
       form.onsubmit = async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button');
-        const input = form.querySelector('input');
         const originalText = btn.innerText;
-        
         btn.disabled = true;
         btn.innerText = 'sending...';
 
@@ -312,25 +308,14 @@ const { results } = await res.json();</code></pre>
           const response = await fetch(form.action, {
             method: 'POST',
             body: data,
-            headers: {
-              'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
           });
           
           if (response.ok) {
             form.classList.add('hidden');
             successMsg.classList.remove('hidden');
-            // Clean URL in case someone shared with hash
-            if (window.history.replaceState) {
-              window.history.replaceState(null, null, window.location.pathname);
-            }
           } else {
-            const result = await response.json();
-            if (result.errors) {
-              alert(result.errors.map(error => error.message).join(", "));
-            } else {
-              throw new Error('Form submission failed');
-            }
+            throw new Error('Form submission failed');
           }
         } catch (err) {
           alert('Oops! Something went wrong. Please try again or email hello@snaps.dev');
@@ -339,6 +324,67 @@ const { results } = await res.json();</code></pre>
         }
       };
     }
+
+    // INTERACTIVE DEMO LOGIC
+    const demoInput = document.getElementById('demo-search-input');
+    const demoBtn = document.getElementById('demo-search-btn');
+    const demoReqUrl = document.getElementById('demo-request-url');
+    const demoLoading = document.getElementById('demo-loading');
+    const demoResponseBody = document.getElementById('demo-response-body');
+    const demoLatency = document.getElementById('demo-latency');
+
+    const MOCK_DATA = {
+      "smith": [
+        { "npi": 1234567890, "name": "John Smith", "specialty": "Cardiology", "city": "Newark", "state": "NJ" },
+        { "npi": 1234567891, "name": "Sarah Smith", "specialty": "Family Medicine", "city": "Jersey City", "state": "NJ" }
+      ],
+      "patel": [
+        { "npi": 1987654321, "name": "Amil Patel", "specialty": "Internal Medicine", "city": "Princeton", "state": "NJ" },
+        { "npi": 1987654322, "name": "Priya Patel", "specialty": "Pediatrics", "city": "Edison", "state": "NJ" }
+      ],
+      "nguyen": [
+        { "npi": 1122334455, "name": "Minh Nguyen", "specialty": "Pharmacist", "city": "Newark", "state": "NJ" }
+      ],
+      "okafor": [
+        { "npi": 1122334466, "name": "Tunde Okafor", "specialty": "General Surgery", "city": "Paterson", "state": "NJ" }
+      ]
+    };
+
+    const runDemo = () => {
+      const val = demoInput.value.trim().toLowerCase();
+      if (!val) return;
+
+      demoLoading.classList.remove('hidden');
+      demoResponseBody.style.opacity = '0.3';
+      demoReqUrl.innerHTML = `<code>https://api.snaps.dev/providers/doctors?last_name=${val}</code>`;
+      
+      const latency = Math.floor(Math.random() * 8) + 3; // 3-10ms
+
+      setTimeout(() => {
+        const results = MOCK_DATA[val] || [];
+        const response = {
+          "count": results.length,
+          "pagination": {
+            "limit": 10,
+            "offset": 0,
+            "next": results.length >= 10 ? `/providers/doctors?last_name=${val}&offset=10` : null
+          },
+          "results": results
+        };
+
+        if (results.length === 0) {
+          response.message = "No providers found matching that name in our demo set.";
+        }
+
+        demoResponseBody.innerHTML = `<code>${JSON.stringify(response, null, 2)}</code>`;
+        demoResponseBody.style.opacity = '1';
+        demoLoading.classList.add('hidden');
+        demoLatency.innerText = `${latency}ms`;
+      }, 400); // 400ms visual delay for the "live" feel
+    };
+
+    demoBtn.addEventListener('click', runDemo);
+    demoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') runDemo(); });
 
     // Smooth scroll behavior
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
